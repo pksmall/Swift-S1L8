@@ -9,9 +9,18 @@
 import SpriteKit
 import GameplayKit
 
+struct CollisionCategories {
+    static let Snake: UInt32 = 0x1 << 0
+    static let SnakeHead: UInt32 = 0x1 << 1
+    static let Apple: UInt32 = 0x1 << 2
+    static let EdgeBody: UInt32 = 0x1 << 3
+}
+
 class GameScene: SKScene {
     // наша змея
     var snake: Snake?
+    var xCenter: CGFloat = 0.0
+    var yCenter: CGFloat = 0.0
     
     // вызывается при первом запуске сцены
     override func didMove(to view:   SKView) {
@@ -52,11 +61,20 @@ class GameScene: SKScene {
         clockwiseButton.name = "clockwiseButton"
         self.addChild(clockwiseButton)
         
+        // Делаем нашу сцену делегатом соприкосновений
+        self.physicsWorld.contactDelegate = self
+        // устанавливаем категорию взаимодействия с другими объектами
+        self.physicsBody?.categoryBitMask = CollisionCategories.EdgeBody
+        // устанавливаем категории, с которыми будут пересекаться края сцены
+        self.physicsBody?.collisionBitMask = CollisionCategories.Snake  | CollisionCategories.SnakeHead
+        
         //add apple to scene
         createApple()
         
+        xCenter = view.scene!.frame.midX
+        yCenter = view.scene!.frame.midY
         // создаем змею по центру экрана и добавляем ее на сцену
-        snake = Snake(atPoint: CGPoint(x: view.scene!.frame.midX, y: view.scene!.frame.midY))
+        snake = Snake(atPoint: CGPoint(x: xCenter, y: yCenter))
         self.addChild(snake!)
     }
     
@@ -74,6 +92,12 @@ class GameScene: SKScene {
             }
             // если это наша кнопка, заливаем ее желтой
             touchedNode.fillColor  = .yellow
+            // определяем, какая кнопка нажата и поворачиваем в нужную сторону
+            if touchedNode.name  == "counterClockwiseButton" {
+                snake!.moveCounterClockwise()
+            } else if touchedNode.name == "clockwiseButton" {
+                snake!.moveClockwise( )
+            }
         }
     }
     
@@ -101,7 +125,7 @@ class GameScene: SKScene {
     
     // вызывается при обработке кадров сцены
     override func update(_ currentTime:TimeInterval)  {
-        
+        snake!.move()
     }
     
     // Создаем яблоко в случайной точке сцены
@@ -113,5 +137,45 @@ class GameScene: SKScene {
         let apple = Apple(position: CGPoint(x: randX, y: randY))
         // Добавляем яблоко на сцену
         self.addChild(apple)
+    }
+}
+
+// Имплементируем протокол
+extension GameScene: SKPhysicsContactDelegate {
+    // Добавляем метод отслеживания начала столкновения
+    func didBegin(_ contact: SKPhysicsContact)  {
+        // логическая сумма масок соприкоснувшихся объектов
+        let bodyes = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        // вычитаем из суммы голову змеи и у нас остается маска второго объекта
+        let collisionObject = bodyes ^ CollisionCategories.SnakeHead
+        // проверяем, что это за второй объект
+        switch collisionObject {
+        case  CollisionCategories.Apple:
+            // проверяем что это яблоко
+            // яблоко это один из двух объектов, которые соприкоснулись. Используем тернарный оператор, чтобы вычислить какой именно
+            let apple = contact.bodyA.node is Apple ? contact.bodyA.node : contact.bodyB.node
+            // добавляем к змее еще одну секцию
+            snake?.addBodyPart()
+            // удаляем съеденное яблоко со сцены
+            apple?.removeFromParent()
+            // создаем новое яблоко
+            createApple()
+        case  CollisionCategories.EdgeBody:
+            // проверяем, что это стенка экрана
+            // @TODO: соприкосновение со стеной будет домашним заданием
+            
+            // убьем змеюку!!!
+            snake?.removeAllChildren()
+            snake?.removeAllBodyPart()
+            snake?.removeFromParent()
+            snake = nil
+            
+            // All Hail Mr. Snake
+            snake = Snake(atPoint: CGPoint(x: xCenter, y: yCenter))
+            self.addChild(snake!)
+        
+        default:
+            break
+        }
     }
 }
