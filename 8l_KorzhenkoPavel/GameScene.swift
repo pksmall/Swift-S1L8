@@ -172,7 +172,7 @@ extension GameScene: SKPhysicsContactDelegate {
             
             // All Hail Mr. Snake
             snake = Snake(atPoint: CGPoint(x: xCenter, y: yCenter))
-            self.addChild(snake!)
+            addChild(snake!)
         
         default:
             break
