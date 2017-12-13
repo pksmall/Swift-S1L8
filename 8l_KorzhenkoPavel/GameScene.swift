@@ -67,11 +67,12 @@ class GameScene: SKScene {
             // определяем координаты касания для точки
             let touchLocation  = touch.location(in: self)
             // проверяем, есть ли объект по этим координатам, и если есть, то не наша ли это кнопка
-            guard let touchedNode  =  self.atPoint(touchLocation) as? SKShapeNode, touchedNode.name  == "counterClockwiseButton" || touchedNode.name  == "clockwiseButton"
+            guard let touchedNode  =  self.atPoint(touchLocation) as? SKShapeNode,
+                    touchedNode.name  == "counterClockwiseButton" || touchedNode.name  == "clockwiseButton"
             else {
                 return
             }
-            // если это наша кнопка, заливаем ее зеленой
+            // если это наша кнопка, заливаем ее желтой
             touchedNode.fillColor  = .yellow
         }
     }
@@ -83,7 +84,8 @@ class GameScene: SKScene {
             // определяем координаты касания для точки
             let touchLocation  = touch.location(in: self)
             // проверяем, есть ли объект по этим координатам, и если есть, то не наша ли это кнопка
-            guard let touchedNode  =  self.atPoint(touchLocation) as? SKShapeNode, touchedNode.name  == "counterClockwiseButton" || touchedNode.name  == "clockwiseButton"
+            guard let touchedNode  =  self.atPoint(touchLocation) as? SKShapeNode,
+                touchedNode.name  == "counterClockwiseButton" || touchedNode.name  == "clockwiseButton"
                 else {
                     return
             }
